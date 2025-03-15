@@ -97,9 +97,19 @@ void aligned_free(void* aligned_mem) {
 
 ---
 
-📌 **Further Reading & Related Discussions**
-- [LinkedIn Post](#) *(Discussion on optimization strategies)*  
-- [GitHub Repository](#) *(Source code & benchmarking results)*  
+# 🏴‍☠️ **Dark Magic in Progress...** ⚡🔮
 
-🌟 **May Odin bless your pointers, and may you never dereference an uninitialized variable!** 🔥
+> **"There are secrets in the memory... waiting to be unlocked."** 🧙‍♂️  
+
+This repository is **under construction**, but the journey into **memory alignment, cache optimization, and raw performance wizardry** has just begun. 🚀  
+
+## ⚔️ **What Lies Ahead?**
+- 🛠️ **Deep dives** into memory allocators, heap fragmentation, and low-level optimizations.  
+- ⚡ **More benchmarks** pushing `std::aligned_alloc()` and `aligned_malloc()` to their limits.  
+- 🔥 **Dark magic tricks** to optimize performance like a true low-level sorcerer.  
+
+🔻 **Stay tuned... the real battle for memory efficiency is just getting started.**  
+
+⚡ **May your pointers stay aligned, and your cache lines stay hot.** 💀🔥  
+
 
