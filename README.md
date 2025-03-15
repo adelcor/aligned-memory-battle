@@ -1,46 +1,70 @@
-# 🏴‍☠️ The Aligned Memory Battle: std::aligned_alloc() vs aligned_malloc()
-⚡ **Memory alignment benchmark in C++** ⚡  
+# 💡 **The Aligned Memory Battle: `std::aligned_alloc()` vs `aligned_malloc()`**
 
-## 🚀 Introduction  
-In low-level C++, **memory alignment** is crucial for optimizing performance and avoiding CPU cache penalties.  
+## ⚡ **Benchmarking Memory Alignment in C++**
 
-💡 **Is std::aligned_alloc() (C++17) really the best choice, or can a manually implemented aligned_malloc() be faster?**  
-💀 **What happens when we take memory allocation into our own hands using pointers and bitwise alignment?**  
+### 🔍 **Introduction**
+Memory alignment plays a **crucial role** in optimizing CPU performance, reducing cache misses, and improving SIMD operations. In C++17, `std::aligned_alloc()` was introduced to simplify memory alignment, but **is it really the best choice?**  
 
-To answer these questions, we ran **a large-scale benchmark**, comparing both strategies across different memory sizes.  
+This article presents a **detailed benchmark** comparing `std::aligned_alloc()` and a manually implemented `aligned_malloc()`. We answer the following questions:
 
----
-
-## 🔥 **Benchmark Results: Which One is Faster?**
-| Size | std::aligned_alloc() | aligned_malloc() | 🏆 Winner |
-|------|------------------------|--------------------|------------|
-| 64B  | **1.5 ms** | **3.0 ms** | std::aligned_alloc() ✅ |
-| 128B | **1.4 ms** | **2.6 ms** | std::aligned_alloc() ✅ |
-| 1KB  | **6.1 ms** | **2.6 ms** | aligned_malloc() ✅ |
-| 1MB  | **14.5 ms** | **5.9 ms** | aligned_malloc() ✅ |
-| <64B | **129 us** | **30 us** | aligned_malloc() ✅ |
-
-📌 **Key Takeaways:**  
-- For **small allocations (~64B - 256B)**, std::aligned_alloc() is consistently faster.  
-- For **large allocations (~1MB+)**, aligned_malloc() is significantly more efficient, avoiding mmap() overhead.  
-- For **ultra-small allocations**, aligned_malloc() is up to **5 times faster** due to lower internal overhead.  
+- **Is `std::aligned_alloc()` always the fastest option?**  
+- **Can manual memory management outperform the standard implementation?**  
+- **How do different memory sizes affect performance?**  
 
 ---
 
-## ⚙️ **Code: How Each Method Works**
+## 📊 **Benchmark Results**
+| Allocation Size | `std::aligned_alloc()` | `aligned_malloc()` | 🏆 Winner |
+|----------------|------------------------|--------------------|------------|
+| 64B           | **2415 us** | **3802 us** | `std::aligned_alloc()` ✅ |
+| 128B          | **5622 us** | **3164 us** | `aligned_malloc()` ✅ |
+| 256B          | **5132 us** | **2661 us** | `aligned_malloc()` ✅ |
+| 1024B         | **14608 us** | **6369 us** | `aligned_malloc()` ✅ |
+| 1MB           | **141 us** | **38 us** | `aligned_malloc()` ✅ |
 
-### 🏆 **Method 1: std::aligned_alloc() (C++17)**
+### **📌 Key Takeaways**
+- `std::aligned_alloc()` is **only faster for ultra-small allocations (64B)** due to optimized heap management.
+- `aligned_malloc()` is **more efficient for allocations larger than 64B**, avoiding unnecessary libc allocator overhead.
+- For **very large allocations (1MB+), `aligned_malloc()` is significantly faster** due to `mmap()` overhead in `std::aligned_alloc()`.
+
+---
+
+## 💡 **Understanding the Benchmark Results**
+### **1. Why is `std::aligned_alloc()` faster for 64B but slower for larger sizes?**
+- `std::aligned_alloc()` handles **very small blocks** more efficiently inside the heap.
+- At **128B and 256B**, it likely introduces **internal alignment overhead**, making it slower.
+- `aligned_malloc()` avoids this extra management and remains **faster for 128B+ allocations**.
+
+### **2. Why is `std::aligned_alloc()` much slower for 1024B and 1MB?**
+- **For allocations >1KB, `std::aligned_alloc()` starts using `mmap()`** instead of `malloc()`.
+- `mmap()` involves **syscalls to the kernel**, significantly increasing allocation time.
+- `aligned_malloc()` keeps using `malloc()`, avoiding the overhead.
+
+### **3. Why is `aligned_malloc()` so much faster at 1MB?**
+- `std::aligned_alloc()` is likely calling `mmap()`, introducing syscall overhead.
+- `aligned_malloc()` keeps working in the heap, making it **dramatically faster (141 us vs. 38 us)**.
+- **But caution**: `mmap()` is **slower in allocation but better for long-term memory use**.
+
+🛠 **Test if `std::aligned_alloc()` uses `mmap()` with:**
+```bash
+strace ./bc 2>&1 | grep mmap
+```
+If it prints `mmap()` calls, that explains the performance drop.
+
+---
+
+## 🛠 **How Each Method Works**
+### 🏆 **Method 1: `std::aligned_alloc()` (C++17)**
 ```cpp
-void* ptr = std::aligned_alloc(64, 1024); // 64-byte alignment, 1024-byte size
+void* ptr = std::aligned_alloc(64, 1024); // 64-byte alignment, 1024-byte allocation
 std::free(ptr);
 ```
+✅ **Pros:** Simpler, safer, and standard-compliant.  
+❌ **Cons:** May be slower for very large or very small allocations.  
 
-✅ Pros: Simpler, safer, and standard-compliant.
+---
 
-❌ Cons: May be slower for very large or very small allocations.
-
-### 🏴‍☠️ **Method 2: aligned_malloc() (Manual malloc() Implementation)**
-
+### 🏴‍☠️ **Method 2: `aligned_malloc()` (Manual `malloc()` Implementation)**
 ```cpp
 void* aligned_malloc(size_t size, size_t alignment) {
     void* raw_mem = malloc(size + alignment + sizeof(void*));
@@ -58,28 +82,24 @@ void aligned_free(void* aligned_mem) {
     }
 }
 ```
+✅ **Pros:** Faster for allocations larger than 64B.  
+❌ **Cons:** Requires manual memory management (**potential `segfault` if misused**).  
 
-✅ Pros: Faster for large and ultra-small allocations.
+---
 
-❌ Cons: Requires manual memory management (potential for segfault if misused).
+## 👌 **Final Thoughts**
+1️⃣ **For ultra-small allocations (64B), `std::aligned_alloc()` is better.**  
+2️⃣ **For anything larger than 64B, `aligned_malloc()` is consistently faster.**  
+3️⃣ **For frequent allocations & deallocations, `aligned_malloc()` is more efficient.**  
+4️⃣ **For very large memory (1MB+), `aligned_malloc()` dominates due to `mmap()` overhead in `std::aligned_alloc()`.**  
 
-## 📢 **How to Run the Benchmark**
-### 🔹 **Compile and Execute**
-```bash
-g++ -std=c++17 -O2 benchmark.cpp -o benchmark
-./benchmark
-```
-### 🔹 **Testing Different Sizes**  
-Modify the code to test different memory sizes:  
-```cpp
-benchmark(64, 16, 100000);
-benchmark(1024, 64, 100000);
-benchmark(1024 * 1024, 64, 1000);  // 1MB allocation
-```
+🚀 **Want to test it yourself? Run the code, execute the benchmarks, and share your results!**  
 
-## 🎯 **Final Thoughts**
-1️⃣ **If you are using modern C++ and want safety and portability, `std::aligned_alloc()` is your best bet.**  
-2️⃣ **If you need extreme performance optimizations, `aligned_malloc()` can be more efficient in specific scenarios.**  
-3️⃣ **Always benchmark before deciding which allocation strategy to use.**  
+---
 
-🚀 **Want to test it yourself? Run the code && execute the benchmarks!**  
+📌 **Further Reading & Related Discussions**
+- [LinkedIn Post](#) *(Discussion on optimization strategies)*  
+- [GitHub Repository](#) *(Source code & benchmarking results)*  
+
+🌟 **May Odin bless your pointers, and may you never dereference an uninitialized variable!** 🔥
+
