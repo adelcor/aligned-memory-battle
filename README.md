@@ -33,10 +33,13 @@ To answer these questions, we ran **a large-scale benchmark**, comparing both st
 ```cpp
 void* ptr = std::aligned_alloc(64, 1024); // 64-byte alignment, 1024-byte size
 std::free(ptr);
+```
+
 ✅ Pros: Simpler, safer, and standard-compliant.
 ❌ Cons: May be slower for very large or very small allocations.
 
-### 🏴‍☠️ Method 2: aligned_malloc() (Manual malloc() Implementation)
+### 🏴‍☠️ **Method 2: aligned_malloc() (Manual malloc() Implementation)**
+
 ```cpp
 void* aligned_malloc(size_t size, size_t alignment) {
     void* raw_mem = malloc(size + alignment + sizeof(void*));
@@ -53,27 +56,8 @@ void aligned_free(void* aligned_mem) {
         free(reinterpret_cast<void**>(aligned_mem)[-1]);
     }
 }
+```
 
 ✅ Pros: Faster for large and ultra-small allocations.
 ❌ Cons: Requires manual memory management (potential for segfault if misused).
 
-📢 How to Run the Benchmark
-
-🔹 Compile and Execute
-
-g++ -std=c++17 -O2 benchmark.cpp -o benchmark
-./benchmark
-This will run 100,000 allocations to compare both methods.
-
-🔹 Testing Different Sizes
-Modify the code to test different memory sizes:
-
-benchmark(64, 16, 100000);
-benchmark(1024, 64, 100000);
-benchmark(1024 * 1024, 64, 1000);  // 1MB allocation
-🎯 Final Thoughts
-1️⃣ If you are using modern C++ and want safety and portability, std::aligned_alloc() is your best bet.
-2️⃣ If you need extreme performance optimizations, aligned_malloc() can be more efficient in specific scenarios.
-3️⃣ Always benchmark before deciding which allocation strategy to use.
-
-🚀 Want to test it yourself? Run the code && execute the benchmarks!
