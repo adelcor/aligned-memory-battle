@@ -1,5 +1,3 @@
-# aligned-memory-battle
-
 # 🏴‍☠️ The Aligned Memory Battle: std::aligned_alloc() vs aligned_malloc()
 ⚡ **Memory alignment benchmark in C++** ⚡  
 
@@ -39,8 +37,7 @@ std::free(ptr);
 ❌ Cons: May be slower for very large or very small allocations.
 
 🏴‍☠️ Method 2: aligned_malloc() (Manual malloc() Implementation)
-cpp
-Copiar
+
 void* aligned_malloc(size_t size, size_t alignment) {
     void* raw_mem = malloc(size + alignment + sizeof(void*));
     if (!raw_mem) return nullptr;
@@ -63,8 +60,6 @@ void aligned_free(void* aligned_mem) {
 
 🔹 Compile and Execute
 
-bash
-Copiar
 g++ -std=c++17 -O2 benchmark.cpp -o benchmark
 ./benchmark
 This will run 100,000 allocations to compare both methods.
@@ -72,8 +67,6 @@ This will run 100,000 allocations to compare both methods.
 🔹 Testing Different Sizes
 Modify the code to test different memory sizes:
 
-cpp
-Copiar
 benchmark(64, 16, 100000);
 benchmark(1024, 64, 100000);
 benchmark(1024 * 1024, 64, 1000);  // 1MB allocation
@@ -82,6 +75,6 @@ benchmark(1024 * 1024, 64, 1000);  // 1MB allocation
 2️⃣ If you need extreme performance optimizations, aligned_malloc() can be more efficient in specific scenarios.
 3️⃣ Always benchmark before deciding which allocation strategy to use.
 
-🚀 Want to test it yourself? Run the code, execute the benchmarks, and let us know your results!
+🚀 Want to test it yourself? Run the code && execute the benchmarks!
 
 Copiar
