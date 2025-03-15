@@ -36,6 +36,7 @@ std::free(ptr);
 ```
 
 ✅ Pros: Simpler, safer, and standard-compliant.
+
 ❌ Cons: May be slower for very large or very small allocations.
 
 ### 🏴‍☠️ **Method 2: aligned_malloc() (Manual malloc() Implementation)**
@@ -59,5 +60,26 @@ void aligned_free(void* aligned_mem) {
 ```
 
 ✅ Pros: Faster for large and ultra-small allocations.
+
 ❌ Cons: Requires manual memory management (potential for segfault if misused).
 
+## 📢 **How to Run the Benchmark**
+### 🔹 **Compile and Execute**
+```bash
+g++ -std=c++17 -O2 benchmark.cpp -o benchmark
+./benchmark
+```
+### 🔹 **Testing Different Sizes**  
+Modify the code to test different memory sizes:  
+```cpp
+benchmark(64, 16, 100000);
+benchmark(1024, 64, 100000);
+benchmark(1024 * 1024, 64, 1000);  // 1MB allocation
+```
+
+## 🎯 **Final Thoughts**
+1️⃣ **If you are using modern C++ and want safety and portability, `std::aligned_alloc()` is your best bet.**  
+2️⃣ **If you need extreme performance optimizations, `aligned_malloc()` can be more efficient in specific scenarios.**  
+3️⃣ **Always benchmark before deciding which allocation strategy to use.**  
+
+🚀 **Want to test it yourself? Run the code && execute the benchmarks!**  
