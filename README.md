@@ -60,7 +60,16 @@ void* ptr = std::aligned_alloc(64, 1024); // 64-byte alignment, 1024-byte alloca
 std::free(ptr);
 ```
 ✅ **Pros:** Simpler, safer, and standard-compliant.  
-❌ **Cons:** May be slower for very large or very small allocations.  
+❌ **Cons:** May be slower for very large or very small allocations.
+
+**Size Restriction:** `std::aligned_alloc()` requires that the allocation size (the first parameter) be an exact multiple of the alignment (the second parameter). This is because the function internally assumes that it can divide the block of memory into equal parts of size "alignment".
+
+**Example:**  
+Requesting an allocation with alignment of 32 bytes and size 100 bytes is invalid since 100 is not a multiple of 32. This could result in undefined behavior or memory corruption.
+
+**Note:**  
+May be slower for very large or very small allocations if the size restriction forces unnecessary adjustments.
+
 
 ---
 
@@ -83,7 +92,10 @@ void aligned_free(void* aligned_mem) {
 }
 ```
 ✅ **Pros:** Faster for allocations larger than 64B.  
-❌ **Cons:** Requires manual memory management (**potential `segfault` if misused**).  
+❌ **Cons:** Requires manual memory management (**potential `segfault` if misused**).
+
+**No Size Restriction:** Unlike `std::aligned_alloc()`, this implementation does not require that the size be an exact multiple of the alignment. It allocates extra space and computes an aligned address, making it more flexible in production environments where the allocation size might not be a neat multiple of the alignment requirement.
+
 
 ---
 
