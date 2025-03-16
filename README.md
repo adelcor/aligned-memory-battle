@@ -38,6 +38,8 @@ This article presents a **detailed benchmark** comparing `std::aligned_alloc()` 
 ### **2. Why is `std::aligned_alloc()` much slower for 1024B and 1MB?**
 - **For allocations >1KB, `std::aligned_alloc()` starts using `mmap()`** instead of `malloc()`.
 - `mmap()` involves **syscalls to the kernel**, significantly increasing allocation time.
+- However, although `mmap()` suffers from the initial syscall overhead, once the memory is allocated, it can be reused with less fragmentation in specific workloads, especially in applications that manage large buffers. This makes it an efficient choice for memory allocations that persist over long periods.
+
 - `aligned_malloc()` keeps using `malloc()`, avoiding the overhead.
 
 ### **3. Why is `aligned_malloc()` so much faster at 1MB?**
